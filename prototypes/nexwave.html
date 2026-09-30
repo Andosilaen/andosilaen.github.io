@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>LoRaWAN Monitor & Handover — Prototype</title>
+<link rel="stylesheet" href="../css/style.css"></head>
+<body>
+<header class="top"><div class="wrap"><a class="brand" href="../index.html">← Fernando Trisandi</a><nav></nav><button class="icon" data-toggle-theme>◐</button></div></header>
+<div class="wrap">
+<div class="pbar"><h1>LoRaWAN Monitor &amp; Site Handover</h1><span class="badge b-info">Concept · PT Nexwave</span></div>
+<div class="note">Simulated data — no real customer readings. Inspired by IoT (LoRaWAN) water-monitoring deployments: gateways, end nodes, and the survey-to-handover flow.</div>
+
+<div class="tabs" id="tabs"><button class="on" data-t="live">Live monitor</button><button data-t="gw">Gateways &amp; nodes</button><button data-t="hand">Survey → handover</button></div>
+
+<div id="live">
+  <div class="kpis">
+    <div class="card kpi"><div class="n" id="k1">—</div><div class="l">Flow (m³/h)</div></div>
+    <div class="card kpi"><div class="n" id="k2">—</div><div class="l">Pressure (bar)</div></div>
+    <div class="card kpi"><div class="n" id="k3">—</div><div class="l">Avg RSSI (dBm)</div></div>
+    <div class="card kpi"><div class="n" id="k4">—</div><div class="l">Packets received</div></div>
+  </div>
+  <div class="card"><svg id="chart" viewBox="0 0 700 220" width="100%" role="img" aria-label="Live flow chart"></svg>
+  <div style="font-size:12px;color:var(--muted)">Flow rate, last 60 samples (updates every second). Alert threshold at 12.5 m³/h.</div></div>
+</div>
+
+<div id="gw" hidden>
+  <div class="card scroll"><table><thead><tr><th>Device</th><th>Type</th><th>Zone</th><th>RSSI</th><th>SNR</th><th>Battery</th><th>Status</th></tr></thead><tbody id="dev"></tbody></table></div>
+</div>
+
+<div id="hand" hidden>
+  <div class="card">
+    <div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap"><b>Handover progress</b><span id="hp">0%</span></div>
+    <div class="bar" style="margin:8px 0 16px"><i id="hb" style="width:0"></i></div>
+    <div id="steps"></div>
+  </div>
+</div>
+</div>
+<script src="../js/main.js"></script>
+<script>
+document.querySelectorAll("#tabs button").forEach(function(b){b.onclick=function(){
+  document.querySelectorAll("#tabs button").forEach(function(x){x.classList.toggle("on",x===b)});
+  ["live","gw","hand"].forEach(function(id){document.getElementById(id).hidden=id!==b.dataset.t})}});
+
+// live chart
+var N=60,data=[],pk=0,t=0;
+for(var i=0;i<N;i++)data.push(10+Math.sin(i/6)*2);
+function tick(){
+  t++;var v=10+Math.sin(t/6)*2+(Math.random()-.5)*1.4;if(t%47===0)v+=3;
+  data.push(v);data.shift();pk+=Math.floor(Math.random()*3)+1;
+  var svg=document.getElementById("chart"),W=700,H=220,p=28,mx=16,mn=6;
+  var pts=data.map(function(d,i){return (p+i*(W-2*p)/(N-1)).toFixed(1)+","+(H-p-(d-mn)/(mx-mn)*(H-2*p)).toFixed(1)}).join(" ");
+  var ty=H-p-(12.5-mn)/(mx-mn)*(H-2*p);
+  svg.innerHTML="<line x1='"+p+"' x2='"+(W-p)+"' y1='"+(H-p)+"' y2='"+(H-p)+"' stroke='var(--line)'/>"+
+   "<line x1='"+p+"' x2='"+(W-p)+"' y1='"+ty+"' y2='"+ty+"' stroke='var(--bad)' stroke-dasharray='4 4'/><text x='"+(W-p)+"' y='"+(ty-4)+"' text-anchor='end'>12.5</text>"+
+   "<polyline fill='none' stroke='var(--accent)' stroke-width='2' points='"+pts+"'/>";
+  document.getElementById("k1").textContent=v.toFixed(1);
+  document.getElementById("k1").style.color=v>12.5?"var(--bad)":"var(--ink)";
+  document.getElementById("k2").textContent=(3.2+Math.sin(t/9)*.3).toFixed(2);
+  document.getElementById("k3").textContent=Math.round(-98+Math.sin(t/5)*4);
+  document.getElementById("k4").textContent=pk.toLocaleString();
+}
+tick();setInterval(tick,1000);
+
+// devices
+var devs=[["GW-01","Gateway","North",-62,9.5,"Mains","Online"],["GW-02","Gateway","South",-71,8.0,"Mains","Online"],
+["EN-101","Flow node","North",-96,6.5,82,"Online"],["EN-102","Pressure node","North",-104,3.0,64,"Online"],
+["EN-201","Flow node","South",-112,-2.0,23,"Weak"],["EN-202","Level node","South",-118,-6.0,11,"Offline"]];
+var tb=document.getElementById("dev");
+devs.forEach(function(d){var cls=d[6]==="Online"?"b-ok":d[6]==="Weak"?"b-warn":"b-bad";
+ tb.innerHTML+="<tr><td><b>"+d[0]+"</b></td><td>"+d[1]+"</td><td>"+d[2]+"</td><td>"+d[3]+" dBm</td><td>"+d[4]+" dB</td><td>"+(typeof d[5]==="number"?d[5]+"%":d[5])+"</td><td><span class='badge "+cls+"'>"+d[6]+"</span></td></tr>"});
+
+// handover
+var st=["Site survey & coverage prediction","Gateway placement & power/backhaul check","End-node installation & labeling","Network server registration (join / keys)","Coverage & RSSI validation walk-test","Dashboard & alert thresholds configured","Documentation & as-built drawings","Client training & handover sign-off"];
+var done=[true,true,true,false,false,false,false,false],box=document.getElementById("steps");
+function rs(){box.innerHTML="";st.forEach(function(s,i){var l=document.createElement("label");l.style.cssText="display:flex;gap:10px;padding:8px 0;border-bottom:1px solid var(--line);cursor:pointer";
+ l.innerHTML="<input type='checkbox' "+(done[i]?"checked":"")+"><span>"+(i+1)+". "+s+"</span>";
+ l.querySelector("input").onchange=function(e){done[i]=e.target.checked;rs()};box.appendChild(l)});
+ var p=Math.round(done.filter(Boolean).length/st.length*100);document.getElementById("hp").textContent=p+"%";document.getElementById("hb").style.width=p+"%"}
+rs();
+</script>
+</body></html>

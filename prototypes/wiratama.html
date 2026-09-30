@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Network Map & Helpdesk — Prototype</title>
+<link rel="stylesheet" href="../css/style.css"></head>
+<body>
+<header class="top"><div class="wrap"><a class="brand" href="../index.html">← Fernando Trisandi</a><nav></nav><button class="icon" data-toggle-theme>◐</button></div></header>
+<div class="wrap">
+<div class="pbar"><h1>Factory Network Map &amp; Helpdesk</h1><span class="badge b-info">Concept · PT Wiratama</span></div>
+<div class="note">Illustrative topology of a manufacturing site: WAN/router, managed switches, VLANs, access points, CCTV and production PCs. Click a node for details; use “Simulate outage” to see impact on the ticket queue.</div>
+
+<div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(300px,1fr))">
+ <div class="card">
+  <svg id="map" viewBox="0 0 580 340" width="100%" role="img" aria-label="Network topology"></svg>
+  <p style="margin:8px 0 0"><button class="icon" id="sim">Simulate outage</button> <button class="icon" id="rst">Reset</button></p>
+ </div>
+ <div class="card"><h3 style="margin:0 0 8px" id="nt">Select a node</h3><div id="nb" style="color:var(--muted);font-size:14px">Click any device on the map.</div>
+  <h3 style="margin:20px 0 8px;font-size:16px">Ticket queue</h3>
+  <table><tbody id="tk"></tbody></table>
+ </div>
+</div>
+</div>
+<script src="../js/main.js"></script>
+<script>
+var nodes={
+ isp:{x:290,y:30,l:"ISP / WAN",vlan:"—",d:"Internet uplink. Failover link on standby.",up:true},
+ fw:{x:290,y:95,l:"Router + Firewall",vlan:"Trunk",d:"NAT, firewall rules, VPN. Weekly config backup via cron.",up:true},
+ sw1:{x:150,y:175,l:"Core Switch",vlan:"VLAN 10/20/30",d:"Managed L2/L3 switch, inter-VLAN routing.",up:true},
+ sw2:{x:440,y:175,l:"Prod Switch",vlan:"VLAN 20",d:"Uplink to production floor. Port security enabled.",up:true},
+ ap:{x:56,y:270,l:"Wi-Fi AP",vlan:"VLAN 30",d:"Office wireless, guest isolated.",up:true},
+ pc:{x:168,y:270,l:"Office PCs",vlan:"VLAN 10",d:"Admin/HR/finance workstations, antivirus + backup.",up:true},
+ cctv:{x:280,y:270,l:"CCTV / NVR",vlan:"VLAN 40",d:"Office + operational-area cameras, recorded to NVR.",up:true},
+ emb:{x:400,y:270,l:"Embroidery PCs",vlan:"VLAN 20",d:"Machine control software — must stay up to keep production running.",up:true},
+ srv:{x:520,y:270,l:"File / Backup",vlan:"VLAN 20",d:"Design files and nightly backup.",up:true}
+};
+var links=[["isp","fw"],["fw","sw1"],["fw","sw2"],["sw1","ap"],["sw1","pc"],["sw1","cctv"],["sw2","emb"],["sw2","srv"]];
+var tickets=[["Printer offline — Finance","Low",false],["Embroidery PC slow to load designs","Med",false],["CCTV cam 7 no image","Med",false],["Wi-Fi drops in warehouse","Low",false]];
+var sel=null;
+function alive(k){ // a node is reachable if it and its upstream chain are up
+  if(!nodes[k].up)return false;
+  var p=links.filter(function(l){return l[1]===k})[0];return p?alive(p[0]):true}
+function draw(){
+  var s="";
+  links.forEach(function(l){var a=nodes[l[0]],b=nodes[l[1]];
+    s+="<line x1='"+a.x+"' y1='"+(a.y+16)+"' x2='"+b.x+"' y2='"+(b.y-16)+"' stroke='"+(alive(l[1])?"var(--accent-2)":"var(--bad)")+"' stroke-width='2'/>"});
+  Object.keys(nodes).forEach(function(k){var n=nodes[k],ok=alive(k);
+    s+="<g data-k='"+k+"' style='cursor:pointer'><rect x='"+(n.x-52)+"' y='"+(n.y-16)+"' width='104' height='32' rx='8' fill='var(--surface)' stroke='"+(ok?"var(--accent)":"var(--bad)")+"' stroke-width='"+(sel===k?3:1.5)+"'/><text x='"+n.x+"' y='"+(n.y+4)+"' text-anchor='middle'>"+n.l+"</text></g>"});
+  var m=document.getElementById("map");m.innerHTML=s;
+  m.querySelectorAll("g").forEach(function(g){g.onclick=function(){sel=g.dataset.k;info();draw()}});
+  var t=document.getElementById("tk");t.innerHTML="";
+  var down=Object.keys(nodes).filter(function(k){return !alive(k)});
+  var all=tickets.slice();if(down.length)all.unshift(["OUTAGE: "+down.length+" device(s) unreachable","High",true]);
+  all.forEach(function(x){t.innerHTML+="<tr><td>"+x[0]+"</td><td><span class='badge "+(x[1]==="High"?"b-bad":x[1]==="Med"?"b-warn":"b-info")+"'>"+x[1]+"</span></td></tr>"});
+}
+function info(){var n=nodes[sel];document.getElementById("nt").textContent=n.l;
+  document.getElementById("nb").innerHTML="<b>VLAN:</b> "+n.vlan+"<br><b>Status:</b> "+(alive(sel)?"<span class='badge b-ok'>Reachable</span>":"<span class='badge b-bad'>Down</span>")+"<br><br>"+n.d}
+document.getElementById("sim").onclick=function(){nodes.sw2.up=false;draw();if(sel)info()};
+document.getElementById("rst").onclick=function(){Object.keys(nodes).forEach(function(k){nodes[k].up=true});draw();if(sel)info()};
+draw();
+</script>
+</body></html>

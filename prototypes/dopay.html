@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Deployment Readiness Board — Prototype</title>
+<link rel="stylesheet" href="../css/style.css"></head>
+<body>
+<header class="top"><div class="wrap"><a class="brand" href="../index.html">← Fernando Trisandi</a><nav></nav><button class="icon" data-toggle-theme>◐</button></div></header>
+<div class="wrap">
+<div class="pbar"><h1>Deployment Readiness Board</h1><span class="badge b-info">Concept · PT Dopay</span></div>
+<div class="note">Illustrative data. Concept of coordinating app deployment across dev, QA and infrastructure. Drag cards between columns; the readiness score updates live.</div>
+
+<div class="kpis">
+  <div class="card kpi"><div class="n" id="score">0%</div><div class="l">Readiness score</div><div class="bar"><i id="scorebar" style="width:0"></i></div></div>
+  <div class="card kpi"><div class="n" id="open">0</div><div class="l">Open tasks</div></div>
+  <div class="card kpi"><div class="n" id="risks">0</div><div class="l">Open high risks</div></div>
+  <div class="card kpi"><div class="n" id="verdict">—</div><div class="l">Go / No-Go</div></div>
+</div>
+
+<div class="board" id="board"></div>
+
+<h2 style="margin-top:28px;font-size:18px">Risk register</h2>
+<div class="card scroll"><table><thead><tr><th>Risk</th><th>Area</th><th>Severity</th><th>Mitigation</th><th>Status</th></tr></thead><tbody id="rk"></tbody></table></div>
+</div>
+<script src="../js/main.js"></script>
+<script>
+var cols=["Backlog","In progress","Review / QA","Ready"];
+var tasks=[
+ {t:"Provision production VM & Nginx",o:"Infra",c:0},{t:"Firewall rules for API gateway",o:"Network",c:0},
+ {t:"DB migration dry-run",o:"Backend",c:1},{t:"VPN access for QA",o:"Network",c:1},
+ {t:"Load test staging",o:"QA",c:2},{t:"UI sign-off",o:"Design",c:2},
+ {t:"CI/CD pipeline green",o:"DevOps",c:3},{t:"Backup & log automation",o:"Infra",c:3}
+];
+var risks=[
+ {r:"Server not ready before release date",a:"Infra",s:"High",m:"Pre-provision; freeze config 3 days before",open:true},
+ {r:"Network latency between DC and app tier",a:"Network",s:"High",m:"Validate route/VLAN; monitor with ping/mtr",open:true},
+ {r:"Third-party API dependency delayed",a:"Backend",s:"Medium",m:"Mock service + fallback",open:true},
+ {r:"No rollback plan documented",a:"PM",s:"Medium",m:"Write and rehearse rollback",open:false}
+];
+var board=document.getElementById("board");
+function render(){
+  board.innerHTML="";
+  cols.forEach(function(name,ci){
+    var col=document.createElement("div");col.className="col";col.dataset.c=ci;
+    col.innerHTML="<h4>"+name+" ("+tasks.filter(function(x){return x.c===ci}).length+")</h4>";
+    col.ondragover=function(e){e.preventDefault()};
+    col.ondrop=function(e){e.preventDefault();var i=e.dataTransfer.getData("i");tasks[i].c=ci;render()};
+    tasks.forEach(function(x,i){if(x.c!==ci)return;
+      var d=document.createElement("div");d.className="task";d.draggable=true;
+      d.innerHTML=x.t+"<small>"+x.o+"</small>";
+      d.ondragstart=function(e){e.dataTransfer.setData("i",i)};
+      d.onclick=function(){x.c=(x.c+1)%4;render()};
+      col.appendChild(d)});
+    board.appendChild(col)});
+  var rdy=tasks.filter(function(x){return x.c===3}).length,tot=tasks.length;
+  var openHigh=risks.filter(function(r){return r.open&&r.s==="High"}).length;
+  var pct=Math.round(rdy/tot*100);
+  document.getElementById("score").textContent=pct+"%";
+  document.getElementById("scorebar").style.width=pct+"%";
+  document.getElementById("open").textContent=tot-rdy;
+  document.getElementById("risks").textContent=openHigh;
+  var go=pct===100&&openHigh===0;
+  document.getElementById("verdict").textContent=go?"GO":"NO-GO";
+  document.getElementById("verdict").style.color=go?"var(--accent-2)":"var(--bad)";
+  var tb=document.getElementById("rk");tb.innerHTML="";
+  risks.forEach(function(r,i){var tr=document.createElement("tr");
+    tr.innerHTML="<td>"+r.r+"</td><td>"+r.a+"</td><td><span class='badge "+(r.s==="High"?"b-bad":"b-warn")+"'>"+r.s+"</span></td><td>"+r.m+"</td><td><button class='icon'>"+(r.open?"Open":"Mitigated")+"</button></td>";
+    tr.querySelector("button").onclick=function(){r.open=!r.open;render()};
+    tb.appendChild(tr)});
+}
+render();
+</script>
+</body></html>
