@@ -7,4 +7,10 @@
     var n=dark?"light":"dark";root.setAttribute("data-theme",n);
     try{localStorage.setItem(key,n)}catch(e){}
   });
+  /* shared lightbox for any <img data-zoom> */
+  var lb;
+  function ensure(){if(lb)return lb;lb=document.createElement("div");lb.id="lb";lb.innerHTML="<img alt=''>";document.body.appendChild(lb);
+    lb.onclick=function(){lb.classList.remove("on")};document.addEventListener("keydown",function(e){if(e.key==="Escape")lb.classList.remove("on")});return lb}
+  document.addEventListener("click",function(e){var i=e.target.closest("img[data-zoom]");if(!i)return;
+    var l=ensure();l.querySelector("img").src=i.src;l.querySelector("img").alt=i.alt;l.classList.add("on")});
 })();

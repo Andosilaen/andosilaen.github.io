@@ -1,14 +1,16 @@
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Network Map & Helpdesk — Prototype</title>
-<link rel="stylesheet" href="../css/style.css"></head>
+<title>Wiratama — IT Support & Network Prototype</title>
+<link rel="stylesheet" href="../css/style.css">
+<style>.loop{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}.loop button{flex:1 1 110px;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:10px;padding:10px 8px;cursor:pointer;font:inherit;font-size:13px;text-align:left}.loop button b{display:block;font-size:12px;color:var(--muted)}.loop button.on{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent) inset}</style></head>
 <body>
 <header class="top"><div class="wrap"><a class="brand" href="../index.html">← Fernando Trisandi</a><nav></nav><button class="icon" data-toggle-theme>◐</button></div></header>
 <div class="wrap">
-<div class="pbar"><h1>Factory Network Map &amp; Helpdesk</h1><span class="badge b-info">Concept · PT Wiratama</span></div>
-<div class="note">Illustrative topology of a manufacturing site: WAN/router, managed switches, VLANs, access points, CCTV and production PCs. Click a node for details; use “Simulate outage” to see impact on the ticket queue.</div>
+<div class="pbar"><h1>IT Support &amp; Network — Factory Site</h1><span class="badge b-info">Concept · PT Wiratama</span></div>
+<div class="note">Illustrative concept. Network map, IT-support flow and illustrations for an industrial site. Topology of a manufacturing site: WAN/router, managed switches, VLANs, access points, CCTV and production PCs. Click a node for details; use “Simulate outage” to see impact on the ticket queue.</div>
 
-<div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(300px,1fr))">
+<div class="tabs" id="tabs"><button class="on" data-t="m">Network map</button><button data-t="h">IT support concept</button><button data-t="i">Illustrations</button></div>
+<div id="m"><div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(300px,1fr))">
  <div class="card">
   <svg id="map" viewBox="0 0 580 340" width="100%" role="img" aria-label="Network topology"></svg>
   <p style="margin:8px 0 0"><button class="icon" id="sim">Simulate outage</button> <button class="icon" id="rst">Reset</button></p>
@@ -17,8 +19,31 @@
   <h3 style="margin:20px 0 8px;font-size:16px">Ticket queue</h3>
   <table><tbody id="tk"></tbody></table>
  </div>
+</div></div>
+
+<div id="h" hidden>
+ <div class="loop" id="hs"></div><div class="card" id="hd"></div>
+ <h3 style="font-size:16px;margin:20px 0 8px">Support levels &amp; targets (example)</h3>
+ <div class="card scroll"><table><thead><tr><th>Priority</th><th>Example</th><th>Response</th><th>Owner</th></tr></thead><tbody>
+ <tr><td><span class="badge b-bad">High</span></td><td>Production PC / embroidery software down, network outage</td><td>Immediately</td><td>IT admin</td></tr>
+ <tr><td><span class="badge b-warn">Medium</span></td><td>CCTV camera no image, slow PC, printer offline for a team</td><td>Same day</td><td>IT support</td></tr>
+ <tr><td><span class="badge b-info">Low</span></td><td>New user account, software install, Wi-Fi request</td><td>1–2 days</td><td>IT support</td></tr></tbody></table></div>
+ <h3 style="font-size:16px;margin:20px 0 8px">Preventive routine</h3>
+ <div class="card"><ul style="margin:0;padding-left:18px"><li>Daily: check backup job, production PCs, CCTV recording.</li><li>Weekly: router/switch config backup, antivirus definitions, log review.</li><li>Monthly: hardware clean-up, patching window, review open tickets and repeat issues.</li></ul></div>
 </div>
-</div>
+
+<div id="i" hidden>
+ <div class="grid g2">
+  <div class="card"><b>1 · VLAN segmentation</b><svg viewBox="0 0 320 170" width="100%" role="img" aria-label="VLAN segmentation"><rect x="10" y="10" width="300" height="34" rx="8" fill="var(--soft)" stroke="var(--accent)"/><text x="160" y="32" text-anchor="middle">Core switch (trunk)</text>
+   <g><rect x="10" y="80" width="90" height="70" rx="8" fill="none" stroke="#0b6bcb"/><text x="55" y="98" text-anchor="middle">VLAN 10</text><text x="55" y="118" text-anchor="middle" fill="var(--muted)">Office PCs</text><text x="55" y="138" text-anchor="middle" fill="var(--muted)">Printers</text>
+   <rect x="115" y="80" width="90" height="70" rx="8" fill="none" stroke="#0a8f6a"/><text x="160" y="98" text-anchor="middle">VLAN 20</text><text x="160" y="118" text-anchor="middle" fill="var(--muted)">Production</text><text x="160" y="138" text-anchor="middle" fill="var(--muted)">Embroidery PCs</text>
+   <rect x="220" y="80" width="90" height="70" rx="8" fill="none" stroke="#d98a00"/><text x="265" y="98" text-anchor="middle">VLAN 40</text><text x="265" y="118" text-anchor="middle" fill="var(--muted)">CCTV / NVR</text></g>
+   <path d="M55 44V80M160 44V80M265 44V80" stroke="var(--muted)" stroke-width="2"/></svg><p style="font-size:13px;color:var(--muted);margin:6px 0 0">Separate broadcast domains: a fault or a guest device in one VLAN does not reach production.</p></div>
+  <div class="card"><b>2 · UTP cable termination (T568B)</b><svg viewBox="0 0 320 170" width="100%" role="img" aria-label="T568B pin order"><g id="pins"></g></svg><p style="font-size:13px;color:var(--muted);margin:6px 0 0">Same standard on both ends for a straight-through patch cable; test every run before handover.</p></div>
+  <div class="card"><b>3 · Rack &amp; patch panel</b><svg viewBox="0 0 320 170" width="100%" role="img" aria-label="Rack layout"><rect x="90" y="8" width="140" height="154" rx="6" fill="var(--soft)" stroke="var(--line)"/><g id="rack"></g></svg><p style="font-size:13px;color:var(--muted);margin:6px 0 0">Labelled ports (room / outlet ID) shorten troubleshooting.</p></div>
+  <div class="card"><b>4 · Backup 3-2-1</b><svg viewBox="0 0 320 170" width="100%" role="img" aria-label="3-2-1 backup"><rect x="10" y="60" width="80" height="44" rx="8" fill="none" stroke="var(--accent)"/><text x="50" y="86" text-anchor="middle">Server</text><rect x="120" y="14" width="90" height="44" rx="8" fill="none" stroke="var(--accent-2)"/><text x="165" y="40" text-anchor="middle">Local NAS</text><rect x="120" y="106" width="90" height="44" rx="8" fill="none" stroke="var(--accent-2)"/><text x="165" y="132" text-anchor="middle">External disk</text><rect x="235" y="60" width="78" height="44" rx="8" fill="none" stroke="#d98a00"/><text x="274" y="86" text-anchor="middle">Off-site</text><path d="M90 74L120 38M90 90L120 128M210 36L235 70M210 128L235 96" stroke="var(--muted)" stroke-width="2" fill="none"/></svg><p style="font-size:13px;color:var(--muted);margin:6px 0 0">3 copies, 2 media, 1 off-site — nightly job, monthly restore test.</p></div>
+ </div>
+</div></div>
 <script src="../js/main.js"></script>
 <script>
 var nodes={
@@ -56,5 +81,22 @@ function info(){var n=nodes[sel];document.getElementById("nt").textContent=n.l;
 document.getElementById("sim").onclick=function(){nodes.sw2.up=false;draw();if(sel)info()};
 document.getElementById("rst").onclick=function(){Object.keys(nodes).forEach(function(k){nodes[k].up=true});draw();if(sel)info()};
 draw();
+var $=function(i){return document.getElementById(i)};
+var tb=["m","h","i"];document.querySelectorAll("#tabs button").forEach(function(b){b.onclick=function(){document.querySelectorAll("#tabs button").forEach(function(x){x.classList.toggle("on",x===b)});tb.forEach(function(id){$(id).hidden=id!==b.dataset.t})}});
+(function(){var h=location.hash.slice(1);var b=document.querySelector('#tabs button[data-t="'+h+'"]');if(b)b.click()})();
+var H=[["Request","User reports an issue","Phone, chat or walk-in; log every request as a ticket with who, where, what, since when.","Report from user","Ticket with priority"],
+["Triage","Priority &amp; category","Decide urgency by production impact: production machines and network outages first.","Ticket","Priority, owner"],
+["Diagnose","Isolate the fault","Work up the stack: cable/port → switch → VLAN/IP → service. Use ping, ipconfig, switch port status, logs.","Symptoms","Root cause"],
+["Fix","Repair or workaround","Replace cable/port, restart service, reconfigure, reinstall; use a temporary workaround if production is waiting.","Root cause","Service restored"],
+["Verify &amp; close","Confirm with user","Test with the user, update ticket and asset list, note the cause.","Restored service","Closed ticket"],
+["Prevent","Reduce repeats","Review repeated tickets; add monitoring, backup, documentation or user tips.","Ticket history","Preventive task"]];
+var hc=0;function rh(){$("hs").innerHTML=H.map(function(s,i){return "<button class='"+(i===hc?"on":"")+"' data-i='"+i+"'><b>"+(i+1)+"</b>"+s[0]+"</button>"}).join("");
+ $("hs").querySelectorAll("button").forEach(function(b){b.onclick=function(){hc=+b.dataset.i;rh()}});var s=H[hc];
+ $("hd").innerHTML="<h3 style='margin:0 0 4px'>"+s[0]+" <span style='font-weight:400;color:var(--muted);font-size:14px'>· "+s[1]+"</span></h3><p style='margin:8px 0'>"+s[2]+"</p><div class='grid' style='grid-template-columns:repeat(auto-fit,minmax(150px,1fr));font-size:13px'><div><b>Input</b><br>"+s[3]+"</div><div><b>Output</b><br>"+s[4]+"</div></div>"}rh();
+var pc=[["#ffffff","#e6892a"],["#e6892a","#e6892a"],["#ffffff","#2fa84f"],["#2f6fd6","#2f6fd6"],["#ffffff","#2f6fd6"],["#2fa84f","#2fa84f"],["#ffffff","#8b5a2b"],["#8b5a2b","#8b5a2b"]],ps="";
+pc.forEach(function(c,i){var x=20+i*36;ps+="<rect x='"+x+"' y='30' width='28' height='90' rx='4' fill='"+c[0]+"' stroke='var(--line)'/>"+(c[0]==="#ffffff"?"<rect x='"+(x+10)+"' y='30' width='8' height='90' fill='"+c[1]+"'/>":"<rect x='"+x+"' y='30' width='28' height='90' rx='4' fill='"+c[1]+"'/>")+"<text x='"+(x+14)+"' y='140' text-anchor='middle'>"+(i+1)+"</text>"});
+$("pins").innerHTML=ps+"<text x='160' y='18' text-anchor='middle' fill='var(--muted)'>pin 1 → 8 · orange, green, blue, brown</text>";
+var rk=[["Firewall / router","#0b6bcb"],["Core switch","#0a8f6a"],["Patch panel 24p","#7b8794"],["Patch panel 24p","#7b8794"],["NVR","#d98a00"],["File / backup","#8b5cf6"],["UPS","#c0392b"]],rs="";
+rk.forEach(function(r,i){rs+="<rect x='96' y='"+(14+i*21)+"' width='128' height='17' rx='3' fill='"+r[1]+"' opacity='.85'/><text x='160' y='"+(26+i*21)+"' text-anchor='middle' fill='#fff' style='font-size:10px'>"+r[0]+"</text>"});$("rack").innerHTML=rs;
 </script>
 </body></html>

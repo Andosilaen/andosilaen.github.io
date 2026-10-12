@@ -1,71 +1,109 @@
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Deployment Readiness Board — Prototype</title>
-<link rel="stylesheet" href="../css/style.css"></head>
+<title>Dopay — Project Lead Flow Prototype</title>
+<link rel="stylesheet" href="../css/style.css">
+<style>
+.loop{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+.loop button{flex:1 1 120px;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:10px;padding:10px 8px;cursor:pointer;font:inherit;font-size:13px;text-align:left}
+.loop button b{display:block;font-size:12px;color:var(--muted)}.loop button.on{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent) inset}
+.cu{display:grid;grid-template-columns:200px 1fr;gap:12px}@media(max-width:700px){.cu{grid-template-columns:1fr}}
+.cu .side{border:1px solid var(--line);border-radius:10px;padding:10px;background:var(--soft);font-size:13px}
+.cu .side div{padding:4px 6px;border-radius:6px;cursor:pointer}.cu .side div.on{background:var(--accent);color:#fff}
+.pill{display:inline-block;border-radius:999px;padding:1px 8px;font-size:11px;color:#fff;margin-right:4px}
+</style></head>
 <body>
 <header class="top"><div class="wrap"><a class="brand" href="../index.html">← Fernando Trisandi</a><nav></nav><button class="icon" data-toggle-theme>◐</button></div></header>
 <div class="wrap">
-<div class="pbar"><h1>Deployment Readiness Board</h1><span class="badge b-info">Concept · PT Dopay</span></div>
-<div class="note">Illustrative data. Concept of coordinating app deployment across dev, QA and infrastructure. Drag cards between columns; the readiness score updates live.</div>
+<div class="pbar"><h1>Project Lead / Coordinator — Task Flow</h1><span class="badge b-info">Concept · PT Dopay</span></div>
+<div class="note">Illustrative. Built from my responsibilities in the role (Feb–Dec 2024): planning, leading cross-functional teams, technical liaison, risk handling, tracking and reporting. Sample data only — the real ClickUp workspace and projects are internal and not shown.</div>
 
-<div class="kpis">
+<div class="tabs" id="tabs"><button class="on" data-t="r">Responsibility flow</button><button data-t="b">Task board</button><button data-t="c">ClickUp setup</button><button data-t="p">Projects</button></div>
+
+<div id="r">
+ <div class="loop" id="lp"></div><div class="card" id="ld"></div>
+ <h3 style="font-size:16px;margin:20px 0 8px">Weekly rhythm</h3>
+ <div class="card scroll"><table><thead><tr><th>Day</th><th>Lead activity</th><th>Output</th></tr></thead><tbody>
+  <tr><td>Mon</td><td>Sprint / weekly plan with dev, design, QA, infra</td><td>Prioritised tasks with owners &amp; due dates</td></tr>
+  <tr><td>Tue–Thu</td><td>Unblock: server, network, VPN, deploy dependencies; daily stand-up</td><td>Updated statuses, escalations</td></tr>
+  <tr><td>Thu</td><td>Risk review + readiness check for the coming release</td><td>Go / No-Go recommendation</td></tr>
+  <tr><td>Fri</td><td>Report to stakeholders; retrospective notes</td><td>Status report, next-week plan</td></tr></tbody></table></div>
+</div>
+
+<div id="b" hidden>
+ <div class="kpis">
   <div class="card kpi"><div class="n" id="score">0%</div><div class="l">Readiness score</div><div class="bar"><i id="scorebar" style="width:0"></i></div></div>
   <div class="card kpi"><div class="n" id="open">0</div><div class="l">Open tasks</div></div>
   <div class="card kpi"><div class="n" id="risks">0</div><div class="l">Open high risks</div></div>
   <div class="card kpi"><div class="n" id="verdict">—</div><div class="l">Go / No-Go</div></div>
+ </div>
+ <div class="board" id="board"></div>
+ <h2 style="margin-top:28px;font-size:18px">Risk register</h2>
+ <div class="card scroll"><table><thead><tr><th>Risk</th><th>Area</th><th>Severity</th><th>Mitigation</th><th>Status</th></tr></thead><tbody id="rk"></tbody></table></div>
 </div>
 
-<div class="board" id="board"></div>
+<div id="c" hidden>
+ <div class="cu"><div class="side" id="cs"></div><div class="card" id="cd"></div></div>
+ <p style="font-size:13px;color:var(--muted)">Task tracking used across the role: ClickUp, Jira, Trello and Asana. The structure below is a template I follow — Space per product, Folder per release, List per workstream.</p>
+</div>
 
-<h2 style="margin-top:28px;font-size:18px">Risk register</h2>
-<div class="card scroll"><table><thead><tr><th>Risk</th><th>Area</th><th>Severity</th><th>Mitigation</th><th>Status</th></tr></thead><tbody id="rk"></tbody></table></div>
+<div id="p" hidden><div class="grid g2" id="pj"></div>
+ <p style="font-size:13px;color:var(--muted)">Sample project types matching the scope of the role; real project names are omitted.</p></div>
 </div>
 <script src="../js/main.js"></script>
 <script>
+var $=function(i){return document.getElementById(i)};
+var tabs=["r","b","c","p"];
+document.querySelectorAll("#tabs button").forEach(function(b){b.onclick=function(){document.querySelectorAll("#tabs button").forEach(function(x){x.classList.toggle("on",x===b)});tabs.forEach(function(id){$(id).hidden=id!==b.dataset.t})}});
+
+/* responsibility flow */
+var L=[["Plan","Architecture readiness, scope, resources","Translate the product scope into technical work: what needs servers, network, database, integrations. Estimate effort and set dates with each lead.","Product scope, architecture notes","WBS, release plan, resource allocation","ClickUp, Excel"],
+["Allocate","Task allocation across dev / design / QA","Break work into tasks, assign owners, agree definition of done and acceptance criteria.","Release plan","Tasks with owner, due date, priority","ClickUp / Jira board"],
+["Coordinate","Technical liaison","Connect developers with infrastructure and network engineers; align stakeholders; resolve cross-team dependencies.","Blockers, questions","Decisions, unblocked tasks","Stand-up, chat, meeting notes"],
+["Integrate","Deployment &amp; infrastructure","Verify servers, routers, switches, VPN and firewall rules are configured and validated before deployment.","Environment checklist","Ready staging / production","Linux, Nginx, VLAN, VPN"],
+["Risk","Identify &amp; mitigate","Keep a live risk register: server readiness, latency, third-party dependencies, rollback plan. Decide Go / No-Go.","Test results, risk register","Mitigations, Go / No-Go","Risk register, readiness score"],
+["Report","Track &amp; communicate","Weekly status to stakeholders: progress, risks, next steps. Feed lessons back into the next plan.","Board status","Status report, retrospective","ClickUp dashboard, Asana / Trello"]];
+var lc=0;
+function rl(){$("lp").innerHTML=L.map(function(s,i){return "<button class='"+(i===lc?"on":"")+"' data-i='"+i+"'><b>"+(i+1)+"</b>"+s[0]+"</button>"}).join("");
+ $("lp").querySelectorAll("button").forEach(function(b){b.onclick=function(){lc=+b.dataset.i;rl()}});
+ var s=L[lc];$("ld").innerHTML="<h3 style='margin:0 0 4px'>"+s[0]+" <span style='font-weight:400;color:var(--muted);font-size:14px'>· "+s[1]+"</span></h3><p style='margin:8px 0'>"+s[2]+"</p><div class='grid' style='grid-template-columns:repeat(auto-fit,minmax(150px,1fr));font-size:13px'><div><b>Input</b><br>"+s[3]+"</div><div><b>Output</b><br>"+s[4]+"</div><div><b>Tools</b><br>"+s[5]+"</div></div>"}
+rl();
+
+/* board */
 var cols=["Backlog","In progress","Review / QA","Ready"];
-var tasks=[
- {t:"Provision production VM & Nginx",o:"Infra",c:0},{t:"Firewall rules for API gateway",o:"Network",c:0},
- {t:"DB migration dry-run",o:"Backend",c:1},{t:"VPN access for QA",o:"Network",c:1},
- {t:"Load test staging",o:"QA",c:2},{t:"UI sign-off",o:"Design",c:2},
- {t:"CI/CD pipeline green",o:"DevOps",c:3},{t:"Backup & log automation",o:"Infra",c:3}
-];
-var risks=[
- {r:"Server not ready before release date",a:"Infra",s:"High",m:"Pre-provision; freeze config 3 days before",open:true},
- {r:"Network latency between DC and app tier",a:"Network",s:"High",m:"Validate route/VLAN; monitor with ping/mtr",open:true},
- {r:"Third-party API dependency delayed",a:"Backend",s:"Medium",m:"Mock service + fallback",open:true},
- {r:"No rollback plan documented",a:"PM",s:"Medium",m:"Write and rehearse rollback",open:false}
-];
-var board=document.getElementById("board");
-function render(){
-  board.innerHTML="";
-  cols.forEach(function(name,ci){
-    var col=document.createElement("div");col.className="col";col.dataset.c=ci;
-    col.innerHTML="<h4>"+name+" ("+tasks.filter(function(x){return x.c===ci}).length+")</h4>";
-    col.ondragover=function(e){e.preventDefault()};
-    col.ondrop=function(e){e.preventDefault();var i=e.dataTransfer.getData("i");tasks[i].c=ci;render()};
-    tasks.forEach(function(x,i){if(x.c!==ci)return;
-      var d=document.createElement("div");d.className="task";d.draggable=true;
-      d.innerHTML=x.t+"<small>"+x.o+"</small>";
-      d.ondragstart=function(e){e.dataTransfer.setData("i",i)};
-      d.onclick=function(){x.c=(x.c+1)%4;render()};
-      col.appendChild(d)});
-    board.appendChild(col)});
-  var rdy=tasks.filter(function(x){return x.c===3}).length,tot=tasks.length;
-  var openHigh=risks.filter(function(r){return r.open&&r.s==="High"}).length;
-  var pct=Math.round(rdy/tot*100);
-  document.getElementById("score").textContent=pct+"%";
-  document.getElementById("scorebar").style.width=pct+"%";
-  document.getElementById("open").textContent=tot-rdy;
-  document.getElementById("risks").textContent=openHigh;
-  var go=pct===100&&openHigh===0;
-  document.getElementById("verdict").textContent=go?"GO":"NO-GO";
-  document.getElementById("verdict").style.color=go?"var(--accent-2)":"var(--bad)";
-  var tb=document.getElementById("rk");tb.innerHTML="";
-  risks.forEach(function(r,i){var tr=document.createElement("tr");
-    tr.innerHTML="<td>"+r.r+"</td><td>"+r.a+"</td><td><span class='badge "+(r.s==="High"?"b-bad":"b-warn")+"'>"+r.s+"</span></td><td>"+r.m+"</td><td><button class='icon'>"+(r.open?"Open":"Mitigated")+"</button></td>";
-    tr.querySelector("button").onclick=function(){r.open=!r.open;render()};
-    tb.appendChild(tr)});
-}
+var tasks=[{t:"Provision production VM & Nginx",o:"Infra",c:0},{t:"Firewall rules for API gateway",o:"Network",c:0},{t:"DB migration dry-run",o:"Backend",c:1},{t:"VPN access for QA",o:"Network",c:1},{t:"Load test staging",o:"QA",c:2},{t:"UI sign-off",o:"Design",c:2},{t:"CI/CD pipeline green",o:"DevOps",c:3},{t:"Backup & log automation",o:"Infra",c:3}];
+var risks=[{r:"Server not ready before release date",a:"Infra",s:"High",m:"Pre-provision; freeze config 3 days before",open:true},{r:"Network latency between DC and app tier",a:"Network",s:"High",m:"Validate route/VLAN; monitor with ping/mtr",open:true},{r:"Third-party API dependency delayed",a:"Backend",s:"Medium",m:"Mock service + fallback",open:true},{r:"No rollback plan documented",a:"PM",s:"Medium",m:"Write and rehearse rollback",open:false}];
+function render(){var board=$("board");board.innerHTML="";
+ cols.forEach(function(name,ci){var col=document.createElement("div");col.className="col";
+  col.innerHTML="<h4>"+name+" ("+tasks.filter(function(x){return x.c===ci}).length+")</h4>";
+  col.ondragover=function(e){e.preventDefault()};col.ondrop=function(e){e.preventDefault();tasks[e.dataTransfer.getData("i")].c=ci;render()};
+  tasks.forEach(function(x,i){if(x.c!==ci)return;var d=document.createElement("div");d.className="task";d.draggable=true;d.innerHTML=x.t+"<small>"+x.o+"</small>";
+   d.ondragstart=function(e){e.dataTransfer.setData("i",i)};d.onclick=function(){x.c=(x.c+1)%4;render()};col.appendChild(d)});board.appendChild(col)});
+ var rdy=tasks.filter(function(x){return x.c===3}).length,tot=tasks.length,oh=risks.filter(function(r){return r.open&&r.s==="High"}).length,pct=Math.round(rdy/tot*100);
+ $("score").textContent=pct+"%";$("scorebar").style.width=pct+"%";$("open").textContent=tot-rdy;$("risks").textContent=oh;
+ var go=pct===100&&oh===0;$("verdict").textContent=go?"GO":"NO-GO";$("verdict").style.color=go?"var(--accent-2)":"var(--bad)";
+ var tb=$("rk");tb.innerHTML="";risks.forEach(function(r){var tr=document.createElement("tr");
+  tr.innerHTML="<td>"+r.r+"</td><td>"+r.a+"</td><td><span class='badge "+(r.s==="High"?"b-bad":"b-warn")+"'>"+r.s+"</span></td><td>"+r.m+"</td><td><button class='icon'>"+(r.open?"Open":"Mitigated")+"</button></td>";
+  tr.querySelector("button").onclick=function(){r.open=!r.open;render()};tb.appendChild(tr)})}
 render();
+
+/* ClickUp template */
+var CU=[["Space: Product",["A space per product / client app. Members and permissions set here.","Custom statuses: Backlog → In progress → Review / QA → Ready → Released"]],
+["Folder: Release 1.0",["One folder per release with a start and target date.","Sprint lists hold two-week task batches."]],
+["List: Backend / Frontend / QA / Infra",["One list per workstream so each lead sees their own queue.","Custom fields: Owner team, Severity, Environment (staging / prod)."]],
+["Tasks &amp; subtasks",["Task = deliverable with owner, due date and priority.","Dependencies link infra tasks (VM, firewall, VPN) before deploy tasks.","Checklist per task: definition of done."]],
+["Docs &amp; wiki",["Deployment runbook, rollback plan, server / network inventory, meeting notes."]],
+["Dashboard &amp; reporting",["Cards: tasks by status, overdue, workload per team, burndown.","Weekly snapshot goes into the stakeholder report."]]];
+var ci=0;
+function rcu(){$("cs").innerHTML=CU.map(function(x,i){return "<div class='"+(i===ci?"on":"")+"' data-i='"+i+"'>"+x[0]+"</div>"}).join("");
+ $("cs").querySelectorAll("div").forEach(function(d){d.onclick=function(){ci=+d.dataset.i;rcu()}});
+ $("cd").innerHTML="<h3 style='margin:0 0 8px'>"+CU[ci][0]+"</h3><ul style='margin:0;padding-left:18px'>"+CU[ci][1].map(function(t){return "<li>"+t+"</li>"}).join("")+"</ul>"+(ci===3?"<p style='margin-top:12px'><span class='pill' style='background:#7b8794'>Backlog</span><span class='pill' style='background:#0b6bcb'>In progress</span><span class='pill' style='background:#d98a00'>Review / QA</span><span class='pill' style='background:#0a8f6a'>Ready</span></p>":"")}
+rcu();
+
+/* project types */
+[["Application deployment","Release of a new app version to production: staging, CI/CD, DB migration, go-live checklist.","Dev · QA · Infra","Readiness 100% → Go"],
+["Infrastructure integration","Connect app tier to data centre: VLAN, VPN, firewall rules, routing and latency validation.","Network · Infra","Latency &amp; route validated"],
+["Server &amp; network readiness","Provision and validate servers, routers and switches before a release freeze.","Infra · Network","Config frozen 3 days before"],
+["Stability &amp; monitoring","Backup, log automation and monitoring so releases stay stable after go-live.","Infra · DevOps","Backups verified"]].forEach(function(p){
+ $("pj").innerHTML+="<div class='card'><b>"+p[0]+"</b><p style='margin:6px 0;color:var(--muted);font-size:14px'>"+p[1]+"</p><span class='badge b-info'>"+p[2]+"</span> <span class='badge b-ok'>"+p[3]+"</span></div>"});
 </script>
 </body></html>

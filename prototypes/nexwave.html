@@ -1,16 +1,35 @@
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>LoRaWAN Monitor & Handover — Prototype</title>
-<link rel="stylesheet" href="../css/style.css"></head>
+<title>Nexwave — IoT LoRaWAN & CCTV Prototype</title>
+<link rel="stylesheet" href="../css/style.css">
+<style>
+.thumbs{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+.thumbs img{width:64px;height:48px;object-fit:cover;border-radius:6px;border:1px solid var(--line);cursor:zoom-in}
+.step{padding:10px 0;border-bottom:1px solid var(--line)}
+.step label{display:flex;gap:10px;cursor:pointer;align-items:flex-start}
+.step small{color:var(--muted)}
+.tl{counter-reset:s}
+.tl figure{position:relative}
+.tl figcaption b{color:var(--ink)}
+.ch{display:grid;gap:10px;grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}
+.cam{border:1px solid var(--line);border-radius:10px;padding:10px;background:var(--surface);cursor:pointer;font-size:13px}
+.cam .feed{height:64px;border-radius:6px;margin-bottom:6px;background:linear-gradient(135deg,#1c2a3a,#33506e);display:flex;align-items:center;justify-content:center;color:#9fb6cc;font-size:12px}
+.cam.off .feed{background:#2a2a2a;color:#777}
+.mode{margin-bottom:10px}
+</style></head>
 <body>
 <header class="top"><div class="wrap"><a class="brand" href="../index.html">← Fernando Trisandi</a><nav></nav><button class="icon" data-toggle-theme>◐</button></div></header>
 <div class="wrap">
-<div class="pbar"><h1>LoRaWAN Monitor &amp; Site Handover</h1><span class="badge b-info">Concept · PT Nexwave</span></div>
-<div class="note">Simulated data — no real customer readings. Inspired by IoT (LoRaWAN) water-monitoring deployments: gateways, end nodes, and the survey-to-handover flow.</div>
+<div class="pbar"><h1>Nexwave — Field Delivery Prototype</h1><span class="badge b-info">Concept · PT Nexwave</span></div>
+<div class="note">Simulated data. Two work streams from the IBC division — IoT LoRaWAN and CCTV (incl. LPR) — each with input→output flow, per-project pages and photo documentation. Faces blurred, location stamps removed. Faces are blurred and location stamps removed.</div>
 
-<div class="tabs" id="tabs"><button class="on" data-t="live">Live monitor</button><button data-t="gw">Gateways &amp; nodes</button><button data-t="hand">Survey → handover</button></div>
+<div class="tabs mode" id="modes"><button data-m="iot" class="on">IoT LoRaWAN</button><button data-m="cctv">CCTV</button></div>
 
-<div id="live">
+<!-- ============ IoT ============ -->
+<section id="m-iot" style="padding:0">
+ <div class="tabs" id="t-iot"><button data-t="live" class="on">Live monitor</button><button data-t="dev">Gateways &amp; nodes</button><button data-t="flow">Survey → handover</button><button data-t="io">Input → Output</button><button data-t="scan">AS923 scan</button><button data-t="up">Uplink flow</button><button data-t="prj">Projects</button><button data-t="docs">Documentation</button></div>
+
+ <div id="iot-live">
   <div class="kpis">
     <div class="card kpi"><div class="n" id="k1">—</div><div class="l">Flow (m³/h)</div></div>
     <div class="card kpi"><div class="n" id="k2">—</div><div class="l">Pressure (bar)</div></div>
@@ -19,61 +38,230 @@
   </div>
   <div class="card"><svg id="chart" viewBox="0 0 700 220" width="100%" role="img" aria-label="Live flow chart"></svg>
   <div style="font-size:12px;color:var(--muted)">Flow rate, last 60 samples (updates every second). Alert threshold at 12.5 m³/h.</div></div>
-</div>
+ </div>
 
-<div id="gw" hidden>
-  <div class="card scroll"><table><thead><tr><th>Device</th><th>Type</th><th>Zone</th><th>RSSI</th><th>SNR</th><th>Battery</th><th>Status</th></tr></thead><tbody id="dev"></tbody></table></div>
-</div>
+ <div id="iot-dev" hidden><div class="card scroll"><table><thead><tr><th>Device</th><th>Type</th><th>Zone</th><th>RSSI</th><th>SNR</th><th>Battery</th><th>Status</th><th>Photo</th></tr></thead><tbody id="dev"></tbody></table></div></div>
 
-<div id="hand" hidden>
-  <div class="card">
-    <div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap"><b>Handover progress</b><span id="hp">0%</span></div>
-    <div class="bar" style="margin:8px 0 16px"><i id="hb" style="width:0"></i></div>
-    <div id="steps"></div>
-  </div>
-</div>
+ <div id="iot-flow" hidden><div class="card">
+   <div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap"><b>Delivery progress</b><span id="ip">0%</span></div>
+   <div class="bar" style="margin:8px 0 8px"><i id="ib" style="width:0"></i></div>
+   <div id="isteps"></div></div></div>
+
+
+ <div id="iot-io" hidden><div class="card scroll"><table><thead><tr><th>Stage</th><th>Input</th><th>Process</th><th>Output</th></tr></thead><tbody id="ioi"></tbody></table></div></div>
+
+ <div id="iot-scan" hidden><div class="card">
+  <b>AS923 radio scan (Indonesia, 920–923 MHz)</b>
+  <p style="margin:6px 0;color:var(--muted);font-size:13px">Before fixing gateway channels, sweep the band to find noise/interferers. The scan steps through 200 kHz slots and plots RSSI; the LoRaWAN channel plan is then set on the lowest-noise slots.</p>
+  <svg id="spec" viewBox="0 0 700 250" width="100%" role="img" aria-label="Spectrum scan"></svg>
+  <p style="margin:8px 0 0"><button class="icon" id="scanb">Start scan</button> <span id="scant" style="font-size:13px;color:var(--muted)">Idle</span></p>
+  <div id="scanr" style="margin-top:8px;font-size:14px"></div>
+  <p style="font-size:12px;color:var(--muted);margin:8px 0 0">Illustrative data. Channel frequencies follow the AS923-2 plan (default join channels 921.4 / 921.6 MHz, 125 kHz, SF7–SF12); always confirm against the network server’s regional parameters and current regulation.</p></div></div>
+
+ <div id="iot-up" hidden><div class="card">
+  <b>How an end node sends data and the gateway receives it</b>
+  <svg id="upsvg" viewBox="0 0 700 170" width="100%" role="img" aria-label="Uplink data flow" style="margin-top:8px"></svg>
+  <p style="margin:6px 0"><button class="icon" id="sendb">Send uplink</button> Spreading factor: <input type="range" id="sf" min="7" max="12" value="9" style="vertical-align:middle"> <b id="sfl"></b></p>
+  <div class="kpis"><div class="card kpi"><div class="n" id="air">—</div><div class="l">Airtime (12-byte payload)</div></div><div class="card kpi"><div class="n" id="rng">—</div><div class="l">Relative range</div></div><div class="card kpi"><div class="n" id="bps">—</div><div class="l">Bit rate</div></div></div>
+  <ol id="upl" style="margin:8px 0 0;padding-left:20px;font-size:14px"></ol></div></div>
+
+ <div id="iot-prj" hidden><div class="grid g2" id="iprj"></div></div>
+
+ <div id="iot-docs" hidden><div class="gallery tl" id="igal"></div></div>
+</section>
+
+<!-- ============ CCTV ============ -->
+<section id="m-cctv" hidden style="padding:0">
+ <div class="tabs" id="t-cctv"><button data-t="flow" class="on">Installation flow</button><button data-t="eq">Equipment</button><button data-t="nvr">NVR view</button><button data-t="io">Input → Output</button><button data-t="lpr">LPR CCTV</button><button data-t="prj">Projects</button><button data-t="docs">Documentation</button></div>
+
+ <div id="cctv-flow"><div class="card">
+   <div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap"><b>Installation progress</b><span id="cp">0%</span></div>
+   <div class="bar" style="margin:8px 0 8px"><i id="cb" style="width:0"></i></div>
+   <div id="csteps"></div></div></div>
+
+ <div id="cctv-eq" hidden><div class="card scroll"><table><thead><tr><th>Equipment</th><th>Role</th><th>Qty (sample)</th><th>Photo</th></tr></thead><tbody id="eq"></tbody></table></div></div>
+
+ <div id="cctv-nvr" hidden>
+   <div class="kpis"><div class="card kpi"><div class="n" id="nv1">—</div><div class="l">Channels online</div></div><div class="card kpi"><div class="n" id="nv2">—</div><div class="l">Recording</div></div><div class="card kpi"><div class="n" id="nv3">—</div><div class="l">Analytics events today</div></div></div>
+   <div class="card"><div class="ch" id="chs"></div><div style="font-size:12px;color:var(--muted);margin-top:8px">Click a channel to toggle it offline/online and see the KPIs react. Speed-detection analytics events are simulated.</div></div>
+ </div>
+
+
+ <div id="cctv-io" hidden><div class="card scroll"><table><thead><tr><th>Stage</th><th>Input</th><th>Process</th><th>Output</th></tr></thead><tbody id="cio"></tbody></table></div></div>
+
+ <div id="cctv-lpr" hidden><div class="card">
+  <b>LPR CCTV — plate recognition flow</b>
+  <svg id="lprsvg" viewBox="0 0 700 120" width="100%" role="img" aria-label="LPR pipeline" style="margin:8px 0"></svg>
+  <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;align-items:end">
+   <label style="font-size:13px">Plate (sample)<br><input id="plate" value="B 1234 XYZ" style="width:100%;padding:6px;border:1px solid var(--line);border-radius:6px;background:var(--surface);color:var(--ink)"></label>
+   <label style="font-size:13px">Lighting<br><select id="lit"><option value="1">Day</option><option value=".8">Night with IR</option><option value=".45">Night, glare</option></select></label>
+   <label style="font-size:13px">Vehicle speed<br><select id="spd"><option value="1">≤ 20 km/h (gate)</option><option value=".85">40 km/h</option><option value=".55">80 km/h</option></select></label>
+   <button class="icon" id="lprb">Capture &amp; read</button></div>
+  <div id="lprr" style="margin-top:12px"></div>
+  <p style="font-size:12px;color:var(--muted);margin:8px 0 0">Simulation to explain the flow; confidence is a simple model, not a real OCR. Whitelist entries are samples.</p></div></div>
+
+ <div id="cctv-prj" hidden><div class="grid g2" id="cprj"></div></div>
+
+ <div id="cctv-docs" hidden><div class="gallery tl" id="cgal"></div></div>
+</section>
 </div>
 <script src="../js/main.js"></script>
 <script>
-document.querySelectorAll("#tabs button").forEach(function(b){b.onclick=function(){
-  document.querySelectorAll("#tabs button").forEach(function(x){x.classList.toggle("on",x===b)});
-  ["live","gw","hand"].forEach(function(id){document.getElementById(id).hidden=id!==b.dataset.t})}});
+var P={
+ "iot-05":["../img/iot-05.jpg","Civil & material preparation"],"iot-07":["../img/iot-07.jpg","Pole base assembly (team)"],
+ "iot-06":["../img/iot-06.jpg","Panel wiring — power for gateway"],"iot-08":["../img/iot-08.jpg","Panel termination check"],
+ "iot-03":["../img/iot-03.jpg","Antenna installation on pole"],"iot-02":["../img/iot-02.jpg","Antenna pole completed"],
+ "iot-01":["../img/iot-01.jpg","Gateway units — power & PoE after grounding"],"iot-04":["../img/iot-04.jpg","LoRaWAN smart-meter sensor (end node)"],
+ "cctv-05":["../img/cctv-05.jpg","Site survey with the team"],"cctv-06":["../img/cctv-06.jpg","Power panel check"],
+ "cctv-07":["../img/cctv-07.jpg","Site office / cabling entry point"],"cctv-01":["../img/cctv-01.jpg","PTZ camera mounted on tower"],
+ "cctv-02":["../img/cctv-02.jpg","Outdoor camera close-up"],"cctv-04":["../img/cctv-04.jpg","Workshop coverage camera"],
+ "cctv-03":["../img/cctv-03.jpg","NVR multi-camera view"]
+};
+function thumbs(ids){return ids.length?"<div class='thumbs'>"+ids.map(function(i){return "<img data-zoom src='"+P[i][0]+"' alt='"+P[i][1]+"' title='"+P[i][1]+"' loading='lazy'>"}).join("")+"</div>":""}
+function gallery(el,steps){el.innerHTML="";var n=0;steps.forEach(function(s,si){s[2].forEach(function(id){n++;
+  el.innerHTML+="<figure><img data-zoom src='"+P[id][0]+"' alt='"+P[id][1]+"' loading='lazy'><figcaption><b>Step "+(si+1)+"</b> · "+s[0]+"<br>"+P[id][1]+"</figcaption></figure>"})})}
 
-// live chart
-var N=60,data=[],pk=0,t=0;
-for(var i=0;i<N;i++)data.push(10+Math.sin(i/6)*2);
-function tick(){
-  t++;var v=10+Math.sin(t/6)*2+(Math.random()-.5)*1.4;if(t%47===0)v+=3;
-  data.push(v);data.shift();pk+=Math.floor(Math.random()*3)+1;
-  var svg=document.getElementById("chart"),W=700,H=220,p=28,mx=16,mn=6;
-  var pts=data.map(function(d,i){return (p+i*(W-2*p)/(N-1)).toFixed(1)+","+(H-p-(d-mn)/(mx-mn)*(H-2*p)).toFixed(1)}).join(" ");
-  var ty=H-p-(12.5-mn)/(mx-mn)*(H-2*p);
-  svg.innerHTML="<line x1='"+p+"' x2='"+(W-p)+"' y1='"+(H-p)+"' y2='"+(H-p)+"' stroke='var(--line)'/>"+
-   "<line x1='"+p+"' x2='"+(W-p)+"' y1='"+ty+"' y2='"+ty+"' stroke='var(--bad)' stroke-dasharray='4 4'/><text x='"+(W-p)+"' y='"+(ty-4)+"' text-anchor='end'>12.5</text>"+
-   "<polyline fill='none' stroke='var(--accent)' stroke-width='2' points='"+pts+"'/>";
-  document.getElementById("k1").textContent=v.toFixed(1);
-  document.getElementById("k1").style.color=v>12.5?"var(--bad)":"var(--ink)";
-  document.getElementById("k2").textContent=(3.2+Math.sin(t/9)*.3).toFixed(2);
-  document.getElementById("k3").textContent=Math.round(-98+Math.sin(t/5)*4);
-  document.getElementById("k4").textContent=pk.toLocaleString();
-}
+/* mode + tabs + hash */
+function setMode(m){document.querySelectorAll("#modes button").forEach(function(b){b.classList.toggle("on",b.dataset.m===m)});
+ document.getElementById("m-iot").hidden=m!=="iot";document.getElementById("m-cctv").hidden=m!=="cctv"}
+function setTab(m,t){document.querySelectorAll("#t-"+m+" button").forEach(function(b){b.classList.toggle("on",b.dataset.t===t)});
+ document.querySelectorAll("#m-"+m+" > div[id^='"+m+"-']").forEach(function(d){d.hidden=d.id!==m+"-"+t})}
+document.querySelectorAll("#modes button").forEach(function(b){b.onclick=function(){setMode(b.dataset.m);history.replaceState(null,"","#"+b.dataset.m)}});
+["iot","cctv"].forEach(function(m){document.querySelectorAll("#t-"+m+" button").forEach(function(b){b.onclick=function(){setTab(m,b.dataset.t)}})});
+(function(){var h=location.hash.slice(1).split("-");if(h[0]==="cctv"||h[0]==="iot"){setMode(h[0]);if(h[1])setTab(h[0],h[1])}})();
+
+/* IoT live */
+var N=60,data=[],pk=0,t=0;for(var i=0;i<N;i++)data.push(10+Math.sin(i/6)*2);
+function tick(){t++;var v=10+Math.sin(t/6)*2+(Math.random()-.5)*1.4;if(t%47===0)v+=3;data.push(v);data.shift();pk+=Math.floor(Math.random()*3)+1;
+ var svg=document.getElementById("chart"),W=700,H=220,p=28,mx=16,mn=6;
+ var pts=data.map(function(d,i){return (p+i*(W-2*p)/(N-1)).toFixed(1)+","+(H-p-(d-mn)/(mx-mn)*(H-2*p)).toFixed(1)}).join(" ");
+ var ty=H-p-(12.5-mn)/(mx-mn)*(H-2*p);
+ svg.innerHTML="<line x1='"+p+"' x2='"+(W-p)+"' y1='"+(H-p)+"' y2='"+(H-p)+"' stroke='var(--line)'/><line x1='"+p+"' x2='"+(W-p)+"' y1='"+ty+"' y2='"+ty+"' stroke='var(--bad)' stroke-dasharray='4 4'/><text x='"+(W-p)+"' y='"+(ty-4)+"' text-anchor='end'>12.5</text><polyline fill='none' stroke='var(--accent)' stroke-width='2' points='"+pts+"'/>";
+ document.getElementById("k1").textContent=v.toFixed(1);document.getElementById("k1").style.color=v>12.5?"var(--bad)":"var(--ink)";
+ document.getElementById("k2").textContent=(3.2+Math.sin(t/9)*.3).toFixed(2);document.getElementById("k3").textContent=Math.round(-98+Math.sin(t/5)*4);document.getElementById("k4").textContent=pk.toLocaleString()}
 tick();setInterval(tick,1000);
 
-// devices
-var devs=[["GW-01","Gateway","North",-62,9.5,"Mains","Online"],["GW-02","Gateway","South",-71,8.0,"Mains","Online"],
-["EN-101","Flow node","North",-96,6.5,82,"Online"],["EN-102","Pressure node","North",-104,3.0,64,"Online"],
-["EN-201","Flow node","South",-112,-2.0,23,"Weak"],["EN-202","Level node","South",-118,-6.0,11,"Offline"]];
-var tb=document.getElementById("dev");
-devs.forEach(function(d){var cls=d[6]==="Online"?"b-ok":d[6]==="Weak"?"b-warn":"b-bad";
- tb.innerHTML+="<tr><td><b>"+d[0]+"</b></td><td>"+d[1]+"</td><td>"+d[2]+"</td><td>"+d[3]+" dBm</td><td>"+d[4]+" dB</td><td>"+(typeof d[5]==="number"?d[5]+"%":d[5])+"</td><td><span class='badge "+cls+"'>"+d[6]+"</span></td></tr>"});
+/* IoT devices (with photo links) */
+var devs=[["GW-01","Gateway","North",-62,9.5,"Mains","Online","iot-01"],["GW-02","Gateway","South",-71,8.0,"Mains","Online","iot-01"],
+["EN-101","Flow node","North",-96,6.5,82,"Online","iot-04"],["EN-102","Pressure node","North",-104,3.0,64,"Online","iot-04"],
+["EN-201","Flow node","South",-112,-2.0,23,"Weak",""],["EN-202","Level node","South",-118,-6.0,11,"Offline",""]];
+devs.forEach(function(d){var c=d[6]==="Online"?"b-ok":d[6]==="Weak"?"b-warn":"b-bad";
+ document.getElementById("dev").innerHTML+="<tr><td><b>"+d[0]+"</b></td><td>"+d[1]+"</td><td>"+d[2]+"</td><td>"+d[3]+" dBm</td><td>"+d[4]+" dB</td><td>"+(typeof d[5]==="number"?d[5]+"%":d[5])+"</td><td><span class='badge "+c+"'>"+d[6]+"</span></td><td>"+(d[7]?thumbs([d[7]]):"—")+"</td></tr>"});
 
-// handover
-var st=["Site survey & coverage prediction","Gateway placement & power/backhaul check","End-node installation & labeling","Network server registration (join / keys)","Coverage & RSSI validation walk-test","Dashboard & alert thresholds configured","Documentation & as-built drawings","Client training & handover sign-off"];
-var done=[true,true,true,false,false,false,false,false],box=document.getElementById("steps");
-function rs(){box.innerHTML="";st.forEach(function(s,i){var l=document.createElement("label");l.style.cssText="display:flex;gap:10px;padding:8px 0;border-bottom:1px solid var(--line);cursor:pointer";
- l.innerHTML="<input type='checkbox' "+(done[i]?"checked":"")+"><span>"+(i+1)+". "+s+"</span>";
- l.querySelector("input").onchange=function(e){done[i]=e.target.checked;rs()};box.appendChild(l)});
- var p=Math.round(done.filter(Boolean).length/st.length*100);document.getElementById("hp").textContent=p+"%";document.getElementById("hb").style.width=p+"%"}
-rs();
+/* IoT flow */
+var iotSteps=[["Site survey & coverage prediction","Roof/pole location, backhaul and power check",[]],
+["Material & civil preparation","Pole base, cement, sand, mounting hardware",["iot-05","iot-07"]],
+["Gateway power & panel wiring","Panel termination and cable routing",["iot-06","iot-08"]],
+["Pole & antenna installation","Mast erection, antenna and gateway mounting",["iot-03","iot-02"]],
+["Gateway PoE & grounding","Power/PoE verification after grounding",["iot-01"]],
+["End-node (smart meter) installation","Sensor fit, labeling and join test",["iot-04"]],
+["Network server registration","Device keys, join and uplink verification",[]],
+["Coverage validation","RSSI / SNR walk-test",[]],
+["Dashboard & alert thresholds","Flow/pressure alarms configured",[]],
+["Documentation & handover sign-off","As-built, photos, client training",[]]];
+var idone=[true,true,true,true,true,false,false,false,false,false];
+function ri(){var b=document.getElementById("isteps");b.innerHTML="";iotSteps.forEach(function(s,i){var d=document.createElement("div");d.className="step";
+ d.innerHTML="<label><input type='checkbox' "+(idone[i]?"checked":"")+"><span><b>"+(i+1)+". "+s[0]+"</b><br><small>"+s[1]+"</small></span></label>"+thumbs(s[2]);
+ d.querySelector("input").onchange=function(e){idone[i]=e.target.checked;ri()};b.appendChild(d)});
+ var p=Math.round(idone.filter(Boolean).length/iotSteps.length*100);document.getElementById("ip").textContent=p+"%";document.getElementById("ib").style.width=p+"%"}
+ri();gallery(document.getElementById("igal"),iotSteps);
+
+/* CCTV flow */
+var cSteps=[["Site survey & coordination","Camera points, cable routes, client walk-through",["cctv-05"]],
+["Power & panel check","Confirm power source, panel capacity and grounding",["cctv-06"]],
+["Cabling & entry points","Conduit/cable to workshop and site office",["cctv-07"]],
+["Camera mounting","Tower, pole and roof-line mounting; aiming",["cctv-01","cctv-02","cctv-04"]],
+["NVR configuration & recording","Channels, retention, remote view",["cctv-03"]],
+["Analytics tuning (incl. speed detection)","Lines/zones, thresholds, false-alarm tuning",[]],
+["Testing, documentation & handover","As-built, training, sign-off",[]]];
+var cdone=[true,true,true,true,false,false,false];
+function rc(){var b=document.getElementById("csteps");b.innerHTML="";cSteps.forEach(function(s,i){var d=document.createElement("div");d.className="step";
+ d.innerHTML="<label><input type='checkbox' "+(cdone[i]?"checked":"")+"><span><b>"+(i+1)+". "+s[0]+"</b><br><small>"+s[1]+"</small></span></label>"+thumbs(s[2]);
+ d.querySelector("input").onchange=function(e){cdone[i]=e.target.checked;rc()};b.appendChild(d)});
+ var p=Math.round(cdone.filter(Boolean).length/cSteps.length*100);document.getElementById("cp").textContent=p+"%";document.getElementById("cb").style.width=p+"%"}
+rc();gallery(document.getElementById("cgal"),cSteps);
+
+/* CCTV equipment */
+[["PTZ camera","Wide-area coverage from tower",4,["cctv-01"]],["Outdoor bullet camera","Perimeter / speed-detection analytics",12,["cctv-02"]],
+["Fixed camera (indoor/roof-line)","Workshop and warehouse coverage",16,["cctv-04"]],["NVR + monitor","Recording and live multi-view",2,["cctv-03"]],
+["Power panel","Camera/PoE power source",2,["cctv-06"]]].forEach(function(e){
+ document.getElementById("eq").innerHTML+="<tr><td><b>"+e[0]+"</b></td><td>"+e[1]+"</td><td>"+e[2]+"</td><td>"+thumbs(e[3])+"</td></tr>"});
+
+/* NVR simulator */
+var ch=[];for(var c=1;c<=8;c++)ch.push({n:"CH"+c,on:c!==6});
+function rn(){var w=document.getElementById("chs");w.innerHTML="";ch.forEach(function(x){var d=document.createElement("div");d.className="cam"+(x.on?"":" off");
+ d.innerHTML="<div class='feed'>"+(x.on?"LIVE":"NO SIGNAL")+"</div><b>"+x.n+"</b> · <span class='badge "+(x.on?"b-ok":"b-bad")+"'>"+(x.on?"Online":"Offline")+"</span>";
+ d.onclick=function(){x.on=!x.on;rn()};w.appendChild(d)});
+ var on=ch.filter(function(x){return x.on}).length;document.getElementById("nv1").textContent=on+"/"+ch.length;
+ document.getElementById("nv2").textContent=on===ch.length?"All channels":(on+" channels");document.getElementById("nv3").textContent=on*14}
+rn();
+
+/* ---- Input → Output tables ---- */
+function rows(id,a){document.getElementById(id).innerHTML=a.map(function(r){return "<tr><td><b>"+r[0]+"</b></td><td>"+r[1]+"</td><td>"+r[2]+"</td><td>"+r[3]+"</td></tr>"}).join("")}
+rows("ioi",[["1 Survey","Site list, client requirement, map","Coverage estimate, backhaul &amp; power check","Gateway / node positions, BoM"],
+["2 Civil &amp; mast","Material, pole base drawing","Pole base, cement, mast erection","Stable mast, grounded"],
+["3 Gateway power","Panel, cable, PoE injector","Wiring, termination, grounding test","Powered gateway"],
+["4 Radio config","Regional plan (AS923), gateway EUI","Set channels, connect to network server","Gateway online"],
+["5 End node","Sensor / smart meter, device keys","Mount, register (DevEUI / AppKey), join","Node joined, first uplink"],
+["6 Validate","Walk-test tools","RSSI / SNR, packet loss check","Coverage report"],
+["7 Dashboard","Payload decoder, thresholds","Map fields, set alarms","Live dashboard + alerts"],
+["8 Handover","Photos, config, as-built","Client training, sign-off","Handover document"]]);
+rows("cio",[["1 Survey","Areas to cover, client wish list","Camera points, angle &amp; distance, cable route","Camera schedule, BoM"],
+["2 Power &amp; panel","Panel capacity","Check breaker, grounding, PoE budget","Approved power source"],
+["3 Cabling","Route drawing, cable, conduit","Pull, label, terminate","Tested cable runs"],
+["4 Mounting","Camera, bracket, pole / tower","Mount, aim, weatherproof","Camera in position"],
+["5 NVR setup","IP plan, storage need","Add channels, recording mode, retention","Recording + remote view"],
+["6 Analytics","Zone / line drawing, speed reference","Configure speed detection or LPR, tune","Events with low false alarms"],
+["7 Handover","As-built, credentials","Training, sign-off","Handover document"]]);
+
+/* ---- Project cards ---- */
+function cards(id,a){document.getElementById(id).innerHTML=a.map(function(p){return "<div class='card'><span class='badge b-info'>"+p[0]+"</span><h3 style='margin:8px 0 4px;font-size:17px'>"+p[1]+"</h3><p style='margin:0 0 8px;color:var(--muted);font-size:14px'>"+p[2]+"</p><div style='font-size:13px'><b>Flow:</b> "+p[3]+"</div>"+(p[4]?"<p style='margin:8px 0 0'><a href='#"+p[4]+"' class='btn' onclick=\"setMode('"+p[4].split('-')[0]+"');setTab('"+p[4].split('-')[0]+"','"+p[4].split('-')[1]+"')\">Photos</a></p>":"")+"</div>"}).join("")}
+cards("iprj",[["LoRaWAN · water utility","PDAM Gianyar (Bali)","Gateways on masts and smart-meter end nodes for remote flow / pressure monitoring.","Survey → mast &amp; power → AS923 gateway → node join → dashboard → handover","iot-docs"],
+["LoRaWAN · water utility","PDAM Yogyakarta","LoRaWAN coverage and end-node rollout for monitoring points, from survey to handover.","Survey → gateway → end nodes → coverage validation → handover","iot-docs"]]);
+cards("cprj",[["CCTV · industrial","Cilegon — workshop","Workshop and yard coverage: cameras on poles / roof-line, power panel, cabling, NVR.","Survey → power → cabling → mounting → NVR → handover","cctv-docs"],
+["CCTV · analytics","North Jakarta","Outdoor cameras with speed-detection analytics, NVR and remote view.","Survey → mounting → NVR → analytics tuning → handover","cctv-docs"]]);
+
+/* ---- AS923 spectrum scan (simulated) ---- */
+var CHN=[921.4,921.6,921.8,922.0,922.2,922.4,922.6,922.8],F0=920.0,F1=923.0,SL=15,noise=[];
+for(var i=0;i<SL;i++){noise.push(-112+Math.random()*6)}noise[9]=-84;noise[10]=-91;noise[3]=-101; /* interferer near 922.0-922.2 & 920.6 */
+var sc=-1,scanTimer=null;
+function drawSpec(){var W=700,H=250,p=34,bw=(W-2*p)/SL,s="";
+ for(var g=-120;g<=-70;g+=10){var y=H-p-(g+120)/50*(H-2*p);s+="<line x1='"+p+"' x2='"+(W-p)+"' y1='"+y+"' y2='"+y+"' stroke='var(--line)'/><text x='2' y='"+(y+4)+"'>"+g+"</text>"}
+ for(var i=0;i<SL;i++){var f=F0+i*0.2,x=p+i*bw,ch=CHN.some(function(c){return Math.abs(c-(f+.1))<.11});
+  s+="<rect x='"+(x+2)+"' y='"+(H-p-(i<=sc?(noise[i]+120)/50*(H-2*p):0))+"' width='"+(bw-4)+"' height='"+(i<=sc?(noise[i]+120)/50*(H-2*p):0)+"' fill='"+(noise[i]>-95?"var(--bad)":ch?"var(--accent-2)":"var(--accent)")+"'/>";
+  if(i%2===0)s+="<text x='"+(x+bw/2)+"' y='"+(H-14)+"' text-anchor='middle'>"+(f+.1).toFixed(1)+"</text>"}
+ if(sc>=0&&sc<SL)s+="<line x1='"+(p+(sc+1)*bw)+"' x2='"+(p+(sc+1)*bw)+"' y1='10' y2='"+(H-p)+"' stroke='var(--muted)' stroke-dasharray='3 3'/>";
+ s+="<text x='"+(W/2)+"' y='"+(H-1)+"' text-anchor='middle'>MHz</text>";document.getElementById("spec").innerHTML=s}
+drawSpec();
+document.getElementById("scanb").onclick=function(){clearInterval(scanTimer);sc=-1;document.getElementById("scanr").innerHTML="";
+ scanTimer=setInterval(function(){sc++;drawSpec();document.getElementById("scant").textContent="Scanning "+(F0+sc*.2+.1).toFixed(1)+" MHz…";
+  if(sc>=SL-1){clearInterval(scanTimer);document.getElementById("scant").textContent="Scan complete";
+   var bad=[];noise.forEach(function(n,i){if(n>-95)bad.push((F0+i*.2+.1).toFixed(1))});
+   document.getElementById("scanr").innerHTML="<b>Result:</b> noise floor ≈ −110 dBm. Interference at <span class='badge b-bad'>"+bad.join(" · ")+" MHz</span>. Channels <span class='badge b-ok'>921.4 / 921.6</span> (default join) are clean, so the gateway channel plan can stay on the standard AS923-2 set; avoid placing extra channels on the noisy slots."}},260)};
+
+/* ---- Uplink flow ---- */
+var UP=[["End node","Reads sensor, builds payload, encrypts (AES-128) and adds MIC; picks a channel and SF; transmits."],["Air (LoRa)","Chirp spread-spectrum signal, 125 kHz — lower SF is faster; higher SF travels farther."],["Gateway","Demodulates on all channels in parallel, adds RSSI / SNR and timestamp; forwards the packet over IP backhaul."],["Network server","Deduplicates from several gateways, checks MIC and frame counter, applies ADR, schedules downlink."],["Application","Decodes the payload (e.g. flow, pressure, battery) → dashboard and alerts."]];
+function drawUp(hl){var x=[60,190,330,470,620],lb=["End node","Radio (AS923)","Gateway","Network server","App / dashboard"],s="";
+ for(var i=0;i<4;i++)s+="<line x1='"+(x[i]+34)+"' y1='70' x2='"+(x[i+1]-34)+"' y2='70' stroke='"+(hl>i?"var(--accent-2)":"var(--line)")+"' stroke-width='3' "+(i===0?"stroke-dasharray='6 5'":"")+"/>";
+ for(var i=0;i<5;i++)s+="<rect x='"+(x[i]-34)+"' y='45' width='68' height='50' rx='10' fill='var(--surface)' stroke='"+(hl>=i&&hl>=0?"var(--accent-2)":"var(--accent)")+"' stroke-width='"+(hl===i?3:1.5)+"'/><text x='"+x[i]+"' y='74' text-anchor='middle'>"+["📟","📡","🗼","🖥","📊"][i]+"</text><text x='"+x[i]+"' y='118' text-anchor='middle'>"+lb[i]+"</text>";
+ s+="<text x='"+x[1]+"' y='35' text-anchor='middle' fill='var(--muted)'>uplink</text><text x='"+x[3]+"' y='150' text-anchor='middle' fill='var(--muted)'>downlink ← RX1 (1 s) / RX2 (2 s)</text>";
+ document.getElementById("upsvg").innerHTML=s;
+ document.getElementById("upl").innerHTML=UP.map(function(u,i){return "<li style='"+(i===hl?"font-weight:600;color:var(--accent)":"")+"'><b>"+u[0]+":</b> "+u[1]+"</li>"}).join("")}
+function airtime(sf,pl){var bw=125000,de=sf>=11?1:0,tsym=Math.pow(2,sf)/bw,npre=(8+4.25)*tsym,
+ nsym=8+Math.max(Math.ceil((8*pl-4*sf+28+16)/(4*(sf-2*de)))*5,0);return npre+nsym*tsym}
+function upd(){var sf=+document.getElementById("sf").value;document.getElementById("sfl").textContent="SF"+sf;
+ document.getElementById("air").textContent=Math.round(airtime(sf,12+13)*1000)+" ms";
+ document.getElementById("rng").textContent="×"+(1+(sf-7)*.28).toFixed(1);
+ document.getElementById("bps").textContent=Math.round(sf*(125000/Math.pow(2,sf))*(4/5))+" bps"}
+document.getElementById("sf").oninput=upd;upd();drawUp(-1);
+var upT;document.getElementById("sendb").onclick=function(){clearInterval(upT);var h=0;drawUp(0);upT=setInterval(function(){h++;drawUp(h);if(h>=4)clearInterval(upT)},700)};
+
+/* ---- LPR simulator ---- */
+var wl=["B 1234 XYZ","D 5678 ABC","A 2468 QR"];
+(function(){var st=["Camera","Plate capture","OCR","Database","Gate / alert"],s="";for(var i=0;i<5;i++){var x=20+i*135;s+="<rect x='"+x+"' y='30' width='110' height='50' rx='10' fill='var(--surface)' stroke='var(--accent)'/><text x='"+(x+55)+"' y='60' text-anchor='middle'>"+st[i]+"</text>";if(i<4)s+="<line x1='"+(x+110)+"' y1='55' x2='"+(x+135)+"' y2='55' stroke='var(--accent-2)' stroke-width='2'/>"}
+ document.getElementById("lprsvg").innerHTML=s})();
+document.getElementById("lprb").onclick=function(){var p=document.getElementById("plate").value.toUpperCase().trim(),l=+document.getElementById("lit").value,sp=+document.getElementById("spd").value;
+ var conf=Math.round(Math.min(.99,.99*l*sp+ (Math.random()*.04))*100),ok=conf>=70,inl=wl.indexOf(p)>=0,txt=ok?p:p.replace(/[0-9A-Z]/g,function(c,i){return i%3===1?"?":c});
+ document.getElementById("lprr").innerHTML="<div class='grid' style='grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px'><div class='card'><b>OCR read</b><div style='font-size:22px;font-family:monospace'>"+txt+"</div><div style='font-size:13px;color:var(--muted)'>Confidence "+conf+"%</div></div><div class='card'><b>Decision</b><div style='margin-top:6px'>"+(!ok?"<span class='badge b-warn'>Low confidence — manual review / retry</span>":inl?"<span class='badge b-ok'>Whitelisted — open barrier</span>":"<span class='badge b-bad'>Not in list — alert / visitor flow</span>")+"</div></div><div class='card'><b>Tip</b><div style='font-size:13px;color:var(--muted)'>"+(l<.8?"Add IR illuminator, shorten shutter, angle camera 15–30° to plate.":sp<.85?"Lower shutter time or trigger by loop / radar for fast vehicles.":"Good capture conditions.")+"</div></div></div>"};
 </script>
 </body></html>

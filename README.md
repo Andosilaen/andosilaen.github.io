@@ -16,7 +16,7 @@ Then in the repo: Settings → Pages → Source: **GitHub Actions**. Site URL: `
 
 ## Structure
 - `index.html` — CV
-- `prototypes/` — dopay, nexwave, wiratama, axindo (illustrative / anonymised data only)
+- `prototypes/` — dopay, nexwave, wiratama, tigaputra (illustrative / anonymised data only)
 - `Curriculum_Vitae_Fernando_Trisandi.pdf` — downloadable CV
 
 ## Catatan workflow

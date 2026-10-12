@@ -22,7 +22,7 @@ header.top .wrap{display:flex;align-items:center;gap:16px;height:56px}
 nav{display:flex;gap:14px;margin-left:auto;overflow-x:auto;white-space:nowrap}
 nav a{color:var(--muted);font-size:14px}
 button.icon{border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:8px;padding:6px 10px;cursor:pointer;font:inherit;font-size:14px}
-.hero{padding:56px 0 32px;display:grid;gap:24px;grid-template-columns:1fr}
+.hero{padding:56px 16px 32px;display:grid;gap:24px;grid-template-columns:1fr}
 @media(min-width:800px){.hero{grid-template-columns:1.4fr 1fr;align-items:center}}
 .hero h1{font-size:clamp(30px,5vw,46px);line-height:1.1;margin:0 0 8px}
 .hero .role{color:var(--accent);font-weight:600;margin-bottom:12px}
@@ -77,3 +77,17 @@ svg text{fill:var(--ink);font-size:12px}
 .tabs button{border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:8px;padding:6px 12px;cursor:pointer;font:inherit;font-size:14px}
 .tabs button.on{background:var(--accent);border-color:var(--accent);color:#fff}
 .scroll{overflow-x:auto}
+/* background design */
+body{background-image:radial-gradient(color-mix(in srgb,var(--accent) 16%,transparent) 1px,transparent 1.2px);background-size:26px 26px;background-attachment:fixed}
+.hero-wrap{position:relative;overflow:hidden;border-bottom:1px solid var(--line);
+  background:radial-gradient(900px 400px at 85% -10%,color-mix(in srgb,var(--accent) 22%,transparent),transparent 70%),
+             radial-gradient(700px 360px at -5% 110%,color-mix(in srgb,var(--accent-2) 16%,transparent),transparent 70%)}
+.hero-wrap::before{content:"";position:absolute;inset:0;background:url("../img/bg-network.svg") center/cover no-repeat;opacity:.7;pointer-events:none}
+.hero-wrap>.wrap{position:relative}
+.gallery{display:grid;gap:14px;grid-template-columns:repeat(auto-fill,minmax(210px,1fr))}
+.gallery figure{margin:0;border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;background:var(--surface);box-shadow:var(--shadow)}
+.gallery img{display:block;width:100%;aspect-ratio:4/3;object-fit:cover;cursor:zoom-in}
+.gallery figcaption{padding:8px 12px;font-size:13px;color:var(--muted)}
+.gh{margin:28px 0 12px;font-size:18px}
+#lb{position:fixed;inset:0;background:rgba(0,0,0,.86);display:none;align-items:center;justify-content:center;z-index:50;padding:16px;cursor:zoom-out}
+#lb.on{display:flex}#lb img{max-width:100%;max-height:100%;border-radius:8px}

@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Tiga Putra Mandiri — Office IT Support Prototype</title>
+<link rel="stylesheet" href="../css/style.css">
+<style>.loop{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}.loop button{flex:1 1 130px;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:10px;padding:10px 8px;cursor:pointer;font:inherit;font-size:13px;text-align:left}.loop button.on{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent) inset}
+.q{font-size:16px;font-weight:600;margin:0 0 10px}.ans{display:flex;gap:8px;flex-wrap:wrap}.ans button{border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:8px;padding:8px 12px;cursor:pointer;font:inherit}
+.ck label{display:flex;gap:8px;padding:6px 0;border-bottom:1px solid var(--line);cursor:pointer}</style></head>
+<body>
+<header class="top"><div class="wrap"><a class="brand" href="../index.html">← Fernando Trisandi</a><nav></nav><button class="icon" data-toggle-theme>◐</button></div></header>
+<div class="wrap">
+<div class="pbar"><h1>Office IT Support &amp; Network</h1><span class="badge b-info">Concept · PT Tiga Putra Dharma Mandiri</span></div>
+<div class="note">Illustrative concept from my first IT support role (2015–2017): small office network, PCs, printers and preventive maintenance. Sample data only.</div>
+<div class="tabs" id="tabs"><button class="on" data-t="n">Office network</button><button data-t="t">Troubleshooting</button><button data-t="p">Preventive maintenance</button></div>
+
+<div id="n"><div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(300px,1fr))">
+ <div class="card"><svg id="map" viewBox="0 0 420 300" width="100%" role="img" aria-label="Office network"></svg><p style="margin:8px 0 0"><button class="icon" id="rst">Reset</button> <span style="font-size:12px;color:var(--muted)">Click a device to switch it off and see what is affected.</span></p></div>
+ <div class="card"><h3 style="margin:0 0 8px" id="nt">Select a device</h3><div id="nb" style="color:var(--muted);font-size:14px">Click any device on the map.</div><h3 style="margin:18px 0 8px;font-size:16px">Affected</h3><div id="af" style="font-size:14px">Nothing — all devices online.</div></div>
+</div></div>
+
+<div id="t" hidden><div class="card"><div id="tq"></div></div></div>
+
+<div id="p" hidden><div class="grid g2">
+ <div class="card ck"><b>Weekly checklist</b><div id="c1"></div><div class="bar" style="margin-top:8px"><i id="b1" style="width:0"></i></div></div>
+ <div class="card"><b>Monthly &amp; asset routine</b><ul style="margin:8px 0 0;padding-left:18px;font-size:14px"><li>Clean PCs and printers; check fans, cables and UPS.</li><li>Update OS, antivirus and application patches.</li><li>Back up router / switch / AP configuration.</li><li>Update the asset list: user, PC, IP, warranty, issues.</li><li>Review repeated tickets and decide replacements.</li></ul></div>
+</div></div>
+</div>
+<script src="../js/main.js"></script>
+<script>
+var $=function(i){return document.getElementById(i)};
+var tb=["n","t","p"];document.querySelectorAll("#tabs button").forEach(function(b){b.onclick=function(){document.querySelectorAll("#tabs button").forEach(function(x){x.classList.toggle("on",x===b)});tb.forEach(function(id){$(id).hidden=id!==b.dataset.t})}});
+/* network */
+var N={isp:{x:210,y:30,l:"ISP modem",d:"Internet uplink from the provider."},rt:{x:210,y:100,l:"Router",up:"isp",d:"NAT, DHCP, basic firewall. Config backed up monthly."},sw:{x:210,y:170,l:"Switch",up:"rt",d:"Managed switch linking all wired devices."},
+ ap:{x:60,y:170,l:"Access point",up:"rt",d:"Office Wi-Fi for laptops and phones."},pc1:{x:60,y:250,l:"Office PCs",up:"sw",d:"Staff workstations: updates, antivirus, backup."},pr:{x:170,y:250,l:"Printer",up:"sw",d:"Network printer shared by IP."},
+ fs:{x:280,y:250,l:"File share",up:"sw",d:"Shared documents; nightly copy to external disk."},lp:{x:360,y:170,l:"Laptops",up:"ap",d:"Connect through the access point."}};
+N.lp.up="ap";var off={};
+function alive(k){if(off[k])return false;var u=N[k].up;return u?alive(u):true}
+function draw(){var s="";Object.keys(N).forEach(function(k){var n=N[k];if(n.up){var a=N[n.up];s+="<line x1='"+a.x+"' y1='"+(a.y+15)+"' x2='"+n.x+"' y2='"+(n.y-15)+"' stroke='"+(alive(k)?"var(--accent-2)":"var(--bad)")+"' stroke-width='2'/>"}});
+ Object.keys(N).forEach(function(k){var n=N[k],ok=alive(k);s+="<g data-k='"+k+"' style='cursor:pointer'><rect x='"+(n.x-48)+"' y='"+(n.y-15)+"' width='96' height='30' rx='8' fill='"+(off[k]?"var(--soft)":"var(--surface)")+"' stroke='"+(ok?"var(--accent)":"var(--bad)")+"' stroke-width='1.5'/><text x='"+n.x+"' y='"+(n.y+4)+"' text-anchor='middle'>"+n.l+"</text></g>"});
+ $("map").innerHTML=s;$("map").querySelectorAll("g").forEach(function(g){g.onclick=function(){var k=g.dataset.k;off[k]=!off[k];$("nt").textContent=N[k].l;$("nb").innerHTML=N[k].d+"<br><br>"+(off[k]?"<span class='badge b-bad'>Switched off</span>":"<span class='badge b-ok'>Online</span>");draw()}});
+ var down=Object.keys(N).filter(function(k){return !alive(k)});$("af").innerHTML=down.length?down.map(function(k){return "<span class='badge b-bad' style='margin:2px'>"+N[k].l+"</span>"}).join(""):"Nothing — all devices online."}
+draw();$("rst").onclick=function(){off={};draw()};
+/* troubleshooting tree */
+var T={s:["What is the problem?",[["No internet on one PC","a"],["No internet for everyone","b"],["Printer does not print","c"]]],
+a:["Does the PC get an IP address (ipconfig)?",[["Yes, valid IP","a1"],["No / 169.254.x.x","a2"]]],a1:["Can you ping the router?",[["Yes","a3"],["No","a2"]]],a2:["Check cable / port link light, try another port, then check DHCP on the router.",null],a3:["Ping an external IP works but names fail → DNS. Set DNS on the router / PC.",null],
+b:["Router and modem lights normal?",[["Yes","b1"],["No","b2"]]],b1:["Can the router ping the ISP gateway?",[["Yes","b3"],["No","b4"]]],b2:["Power-cycle modem then router; check the power adaptor and UPS.",null],b3:["Likely DNS or a client-side issue: check DNS settings and DHCP pool.",null],b4:["Line fault: check the WAN cable, then call the ISP with the modem status.",null],
+c:["Is the printer online and showing on the network?",[["Yes","c1"],["No","c2"]]],c1:["Clear the print queue, restart the spooler, check the printer IP / driver on the PC.",null],c2:["Check power and cable/Wi-Fi, ping the printer IP, set a fixed IP or DHCP reservation.",null]};
+var path=["s"];
+function rt(){var k=path[path.length-1],n=T[k],h="<p class='q'>"+n[0]+"</p>";
+ if(n[1])h+="<div class='ans'>"+n[1].map(function(a){return "<button data-k='"+a[1]+"'>"+a[0]+"</button>"}).join("")+"</div>";
+ else h+="<span class='badge b-ok'>Solution</span>";
+ h+="<p style='margin:14px 0 0'><button class='icon' id='tr'>Start over</button></p>";$("tq").innerHTML=h;
+ $("tq").querySelectorAll(".ans button").forEach(function(b){b.onclick=function(){path.push(b.dataset.k);rt()}});$("tr").onclick=function(){path=["s"];rt()}}rt();
+/* checklist */
+var C=["Backup completed and checked","Antivirus definitions updated","Printers: toner and paper checked","Wi-Fi and switch ports: no errors","Shared folder permissions reviewed","Log of tickets reviewed"],cd=[true,true,false,false,false,false];
+function rp(){$("c1").innerHTML=C.map(function(c,i){return "<label><input type='checkbox' "+(cd[i]?"checked":"")+" data-i='"+i+"'>"+c+"</label>"}).join("");
+ $("c1").querySelectorAll("input").forEach(function(x){x.onchange=function(){cd[x.dataset.i]=x.checked;rp()}});$("b1").style.width=Math.round(cd.filter(Boolean).length/C.length*100)+"%"}rp();
+</script>
+</body></html>
