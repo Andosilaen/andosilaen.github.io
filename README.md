@@ -18,6 +18,10 @@ Then in the repo: Settings → Pages → Source: **GitHub Actions**. Site URL: `
 - `index.html` — CV
 - `prototypes/` — dopay, nexwave, wiratama, tigaputra (illustrative / anonymised data only)
 - `Curriculum_Vitae_Fernando_Trisandi.pdf` — downloadable CV
+- `manifest.webmanifest`, `sw.js`, `img/icons/` — PWA (installable on Android/iOS, works offline)
+
+## PWA
+After changing any page, CSS or JS, bump `VERSION` in `sw.js` (e.g. `v1` → `v2`) so installed copies pick up the update.
 
 ## Catatan workflow
 `.github/workflows/pages.yml` tidak bisa ditulis lewat Claude, jadi isinya disimpan di `pages.yml.txt`. Sebelum `git add`, jalankan:
